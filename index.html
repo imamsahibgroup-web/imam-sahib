@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#c79a2b">
+<link rel="manifest" href="manifest.json">
+<title>Imam Sahib</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;background:#f6f7fb;color:#172033}
+button,input,select,textarea{font:inherit}.app{max-width:980px;margin:auto;min-height:100vh;background:#fff}
+header{background:#fff;border-bottom:3px solid #c79a2b;padding:18px 22px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:800;font-size:26px}.brand small{display:block;font-size:14px;color:#8b691a}.tabs{display:flex;gap:8px;padding:12px;background:#fff;border-bottom:1px solid #ddd}
+.tabs button,.btn{border:0;border-radius:12px;padding:12px 18px;cursor:pointer}.tabs button{flex:1;background:#edf1f7}.tabs .active,.btn.primary{background:#c79a2b;color:#fff}
+main{padding:18px}.hidden{display:none!important}.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cfd5df;border-radius:10px;background:#fff}
+.card{border:1px solid #dfe3ea;border-radius:14px;padding:15px;margin:12px 0;background:#fff}.person{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.btn{background:#edf1f7}.danger{background:#b42318;color:#fff}.green{background:#16803c;color:#fff}
+h2,h3{margin:8px 0 14px}.muted{color:#6f7887;font-size:13px}.amount.plus{color:#137a36}.amount.minus{color:#b42318}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid #cbd1da;padding:8px;text-align:center;font-size:13px}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:20}.modalbox{background:#fff;border-radius:16px;padding:18px;width:min(560px,100%);max-height:90vh;overflow:auto}
+label{display:block;margin:10px 0 5px;font-weight:600}
+@media(max-width:600px){header{padding:14px}.brand{font-size:22px}main{padding:12px}.person{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions button{flex:1}}
+/* PRINT */
+.statement{display:none}
+@media print{
+ @page{size:A4;margin:8mm}
+ body{background:#fff}.app>*{display:none!important}.app .statement{display:block!important}
+ .statement{direction:rtl;color:#111;font-family:Arial,Tahoma,sans-serif;font-size:10px;position:relative;min-height:275mm;padding:7mm 7mm 24mm}
+ .st-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid #b68a22;padding-bottom:8px}
+ .st-logo{font-size:27px;font-weight:900;color:#b68a22;direction:ltr}.st-logo span{display:block;color:#111;font-size:16px}
+ .st-title{text-align:right}.st-title b{font-size:17px;color:#a47713}.st-title div{font-size:11px;margin-top:2px}
+ .meta{margin:12px 0;display:grid;grid-template-columns:130px 1fr;gap:5px 12px;direction:rtl}
+ .meta .lab{font-weight:700}.meta .val{text-align:right}
+ .statement table{direction:rtl}.statement th,.statement td{font-size:9px;padding:5px;border:1px solid #555}
+ .summary{margin-top:10px;border:1px solid #c5a456;display:flex;padding:8px 0}.sum{flex:1;text-align:center;border-left:1px solid #c5a456}.sum:last-child{border-left:0}.sum b{display:block;font-size:9px}.sum strong{font-size:14px}
+ .st-note{margin-top:10px}.note-box{min-height:42px;border:1px solid #aaa;padding:7px;border-radius:4px}
+ .watermark{position:absolute;left:50%;top:66%;transform:translate(-50%,-50%);font-size:110px;font-weight:900;color:#b68a2212;direction:ltr;z-index:0}
+ .signatures{position:absolute;bottom:31mm;left:7mm;right:7mm;display:flex;justify-content:space-between;direction:ltr}
+ .sig{width:36%;text-align:center;border-top:1px solid #111;padding-top:5px;font-size:10px}.sig b{display:block}
+ .footer{position:absolute;bottom:8mm;left:7mm;right:7mm;border-top:1px solid #b68a22;padding-top:6px;text-align:center;font-size:8px;direction:ltr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand">Imam Sahib<small>حسابداری</small></div><div>ISG</div></header>
+<nav class="tabs">
+<button id="tabPeople" class="active" onclick="showTab('people')">اشخاص</button>
+<button id="tabReports" onclick="showTab('reports')">گزارش</button>
+<button id="tabSettings" onclick="showTab('settings')">تنظیمات</button>
+</nav>
+<main>
+<section id="people">
+<div class="row"><button class="btn primary" onclick="openPersonForm()">+ شخص</button><input id="search" placeholder="جستجوی شخص..." oninput="renderPeople()"></div>
+<div id="peopleList"></div>
+</section>
+<section id="ledger" class="hidden">
+<button class="btn" onclick="backPeople()">← برگشت</button><h2 id="ledgerName"></h2><div id="ledgerBalance" class="card"></div>
+<div class="row"><button class="btn green" onclick="txForm('given')">+ پول داده شد</button><button class="btn primary" onclick="txForm('expense')">+ مصرف / پول کم شد</button></div>
+<div id="txList"></div>
+</section>
+<section id="reports" class="hidden">
+<h2>صورت حساب / Account Statement</h2>
+<label>شخص</label><select id="reportPerson" onchange="buildReport()"></select>
+<div class="row"><div><label>از تاریخ</label><input type="date" id="fromDate" onchange="buildReport()"></div><div><label>تا تاریخ</label><input type="date" id="toDate" onchange="buildReport()"></div></div>
+<label>یادداشت برای صورت حساب</label><textarea id="reportNote" rows="3" placeholder="یادداشت دلخواه..." oninput="buildReport()"></textarea>
+<button class="btn green" style="margin-top:12px;width:100%" onclick="printReport()">PDF / Print</button>
+<div id="reportPreview" class="card"></div>
+</section>
+<section id="settings" class="hidden">
+<h2>تنظیمات</h2><p class="muted">اطلاعات روی همین دستگاه ذخیره می‌شود. برای امنیت، هر چند وقت یک نسخه پشتیبان بگیرید.</p>
+<div class="row"><button class="btn" onclick="exportBackup()">دانلود Backup</button><label class="btn" style="text-align:center">Restore Backup<input type="file" accept=".json" onchange="restoreBackup(this.files[0])" hidden></label></div>
+</section>
+</main>
+
+<section class="statement" id="statement">
+<div class="st-head"><div class="st-logo">ISG<span>مجموعه امام صاحب<br>Imam Sahib Group</span></div><div class="st-title"><b>صورت حساب</b><div>Account Statement</div></div></div>
+<div class="meta">
+<div class="lab">نام شخص / Name:</div><div class="val" id="stName"></div>
+<div class="lab">واحد پول / Currency:</div><div class="val" id="stCurrency"></div>
+<div class="lab">دوره صورت حساب / Period:</div><div class="val" id="stPeriod"></div>
+<div class="lab">تاریخ صدور / Issue Date:</div><div class="val" id="stIssue"></div>
+</div>
+<table><thead><tr><th>#</th><th>تاریخ<br>Date</th><th>توضیحات<br>Description</th><th>نوع<br>Type</th><th>مبلغ<br>Amount</th></tr></thead><tbody id="stRows"></tbody></table>
+<div class="summary"><div class="sum"><b>مجموع پول داده شده<br>Total Paid</b><strong id="stPaid"></strong></div><div class="sum"><b>مجموع مصرف<br>Total Expense</b><strong id="stExpense"></strong></div><div class="sum"><b>باقی مانده حساب<br>Current Balance</b><strong id="stBalance"></strong></div></div>
+<div class="st-note"><b>یادداشت / Note:</b><div class="note-box" id="stNote"></div></div>
+<div class="watermark">ISG</div>
+<div class="signatures"><div class="sig"><b>عبدالمالک عرب</b>Abdul Malik Arab<br>Authorized Signatory</div><div class="sig"><b id="sigNameFa"></b><span id="sigNameEn"></span></div></div>
+<div class="footer">✉ imamsahibgroup@gmail.com &nbsp; | &nbsp; ☎ WhatsApp +971555987020 &nbsp; | &nbsp; ☎ WhatsApp +971501167080 &nbsp; | &nbsp; ☎ WhatsApp +93797177260</div>
+</section>
+</div>
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()"><div class="modalbox" id="modalBox"></div></div>
+<script>
+const currencies=['AFN','AED','USD','EUR'];
+let data=JSON.parse(localStorage.getItem('imamSahibAccounting')||'{"people":[]}'),current=null;
+function save(){localStorage.setItem('imamSahibAccounting',JSON.stringify(data))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fmt(n){return Number(n||0).toLocaleString('en-US')}
+function today(){return new Date().toISOString().slice(0,10)}
+function showTab(t){['people','ledger','reports','settings'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==t));['People','Reports','Settings'].forEach(x=>{let b=document.getElementById('tab'+x);if(b)b.classList.toggle('active',x.toLowerCase()===t)});if(t==='reports'){fillPeople();buildReport()}}
+function modal(h){document.getElementById('modalBox').innerHTML=h;document.getElementById('modal').classList.remove('hidden')}
+function closeModal(){document.getElementById('modal').classList.add('hidden')}
+function balance(p){return (p.tx||[]).reduce((s,x)=>s+(x.type==='given'?Number(x.amount):-Number(x.amount)),0)}
+function renderPeople(){let q=(document.getElementById('search').value||'').toLowerCase(),a=data.people.filter(p=>(p.nameFa+' '+(p.nameEn||'')).toLowerCase().includes(q));document.getElementById('peopleList').innerHTML=a.length?a.map(p=>`<div class="card person"><div><b>${esc(p.nameFa)}</b><div class="muted">${esc(p.nameEn||'')} · ${p.currency}</div><div>باقی: <b>${fmt(balance(p))} ${p.currency}</b></div></div><div class="actions"><button class="btn primary" onclick="openLedger('${p.id}')">حساب</button><button class="btn" onclick="openPersonForm('${p.id}')">Edit</button><button class="btn danger" onclick="deletePerson('${p.id}')">حذف</button></div></div>`).join(''):'<div class="card muted">هنوز شخصی اضافه نشده است.</div>'}
+function openPersonForm(id=''){let p=data.people.find(x=>x.id===id)||{};modal(`<h3>${id?'ویرایش شخص':'شخص جدید'}</h3><label>نام دری</label><input id="pFa" value="${esc(p.nameFa||'')}"><label>Name English</label><input id="pEn" value="${esc(p.nameEn||'')}"><label>واحد پول</label><select id="pCur">${currencies.map(c=>`<option ${p.currency===c?'selected':''}>${c}</option>`).join('')}</select><div class="row" style="margin-top:14px"><button class="btn primary" onclick="savePerson('${id}')">ذخیره</button><button class="btn" onclick="closeModal()">لغو</button></div>`)}
+function savePerson(id){let fa=document.getElementById('pFa').value.trim(),en=document.getElementById('pEn').value.trim(),currency=document.getElementById('pCur').value;if(!fa)return alert('نام را وارد کنید');if(id){let p=data.people.find(x=>x.id===id);Object.assign(p,{nameFa:fa,nameEn:en,currency})}else data.people.push({id:String(Date.now()),nameFa:fa,nameEn:en,currency,tx:[]});save();closeModal();renderPeople();fillPeople()}
+function deletePerson(id){if(confirm('این شخص و تمام تراکنش‌های او حذف شود؟')){data.people=data.people.filter(p=>p.id!==id);save();renderPeople();fillPeople()}}
+function openLedger(id){current=id;let p=data.people.find(x=>x.id===id);document.getElementById('ledgerName').textContent=p.nameFa+(p.nameEn?' / '+p.nameEn:'');showTab('ledger');renderLedger()}
+function backPeople(){current=null;showTab('people');renderPeople()}
+function renderLedger(){let p=data.people.find(x=>x.id===current);document.getElementById('ledgerBalance').innerHTML=`باقی مانده حساب: <b>${fmt(balance(p))} ${p.currency}</b>`;document.getElementById('txList').innerHTML=(p.tx||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="card"><div class="person"><div><b class="amount ${x.type==='given'?'plus':'minus'}">${x.type==='given'?'+':'-'}${fmt(x.amount)} ${p.currency}</b><div>${esc(x.typeLabel||typeLabel(x.type))}</div><div>${esc(x.description)}</div><small class="muted">${x.date}</small></div><div class="actions"><button class="btn" onclick="txForm('${x.type}','${x.id}')">Edit</button><button class="btn danger" onclick="deleteTx('${x.id}')">حذف</button></div></div></div>`).join('')||'<div class="card muted">تراکنش موجود نیست.</div>'}
+function typeLabel(t){return t==='given'?'پول داده شد':'مصرف'}
+function txForm(type,id=''){let p=data.people.find(x=>x.id===current),x=(p.tx||[]).find(y=>y.id===id)||{};modal(`<h3>${id?'ویرایش تراکنش':'تراکنش جدید'}</h3><label>مبلغ (${p.currency})</label><input id="tAmount" type="number" min="0" step="any" value="${x.amount||''}"><label>تاریخ</label><input id="tDate" type="date" value="${x.date||today()}"><label>نوع</label><select id="tPreset" onchange="document.getElementById('tCustom').value=this.value==='custom'?'':this.value"><option value="${typeLabel(type)}">${typeLabel(type)}</option><option value="custom">نوع دیگر...</option></select><label>نوع دلخواه (می‌توانید نوشته را تغییر دهید)</label><input id="tCustom" value="${esc(x.typeLabel||typeLabel(type))}" placeholder="مثلاً پیش پرداخت، کرایه، خرید..."><label>توضیحات</label><textarea id="tDesc" rows="3">${esc(x.description||'')}</textarea><div class="row" style="margin-top:14px"><button class="btn primary" onclick="saveTx('${type}','${id}')">ذخیره</button><button class="btn" onclick="closeModal()">لغو</button></div>`)}
+function saveTx(type,id){let p=data.people.find(x=>x.id===current),amount=Number(document.getElementById('tAmount').value),date=document.getElementById('tDate').value,typeLabelV=document.getElementById('tCustom').value.trim()||typeLabel(type),description=document.getElementById('tDesc').value.trim();if(!(amount>0)||!date)return alert('مبلغ و تاریخ را درست وارد کنید');if(id){let x=p.tx.find(y=>y.id===id);Object.assign(x,{amount,date,type,typeLabel:typeLabelV,description})}else{p.tx=p.tx||[];p.tx.push({id:String(Date.now()),amount,date,type,typeLabel:typeLabelV,description})}save();closeModal();renderLedger()}
+function deleteTx(id){let p=data.people.find(x=>x.id===current);if(confirm('این تراکنش حذف شود؟')){p.tx=p.tx.filter(x=>x.id!==id);save();renderLedger()}}
+function fillPeople(){let s=document.getElementById('reportPerson'),v=s.value;s.innerHTML=data.people.map(p=>`<option value="${p.id}">${esc(p.nameFa)}</option>`).join('');if(data.people.some(p=>p.id===v))s.value=v}
+function reportData(){let id=document.getElementById('reportPerson').value,p=data.people.find(x=>x.id===id);if(!p)return null;let f=document.getElementById('fromDate').value,t=document.getElementById('toDate').value,tx=(p.tx||[]).filter(x=>(!f||x.date>=f)&&(!t||x.date<=t)).sort((a,b)=>a.date.localeCompare(b.date));return {p,tx,f,t}}
+function buildReport(){let r=reportData(),pre=document.getElementById('reportPreview');if(!r){pre.innerHTML='شخصی انتخاب نشده است.';return}let {p,tx,f,t}=r,paid=tx.filter(x=>x.type==='given').reduce((s,x)=>s+Number(x.amount),0),exp=tx.filter(x=>x.type==='expense').reduce((s,x)=>s+Number(x.amount),0),bal=paid-exp;pre.innerHTML=`<b>${esc(p.nameFa)}</b><br>مجموع پول داده شده: ${fmt(paid)} ${p.currency}<br>مجموع مصرف: ${fmt(exp)} ${p.currency}<br>باقی مانده: ${fmt(bal)} ${p.currency}`;
+document.getElementById('stName').innerHTML=`${esc(p.nameFa)}${p.nameEn?'<br>'+esc(p.nameEn):''}`;document.getElementById('stCurrency').textContent=p.currency;document.getElementById('stPeriod').textContent=(f||'ابتدا')+'  الی  '+(t||today());document.getElementById('stIssue').textContent=today();document.getElementById('stRows').innerHTML=tx.map((x,i)=>`<tr><td>${i+1}</td><td>${x.date}</td><td>${esc(x.description)}</td><td>${esc(x.typeLabel||typeLabel(x.type))}</td><td>${x.type==='given'?'':'-'}${fmt(x.amount)}</td></tr>`).join('');document.getElementById('stPaid').textContent=fmt(paid)+' '+p.currency;document.getElementById('stExpense').textContent=fmt(exp)+' '+p.currency;document.getElementById('stBalance').textContent=fmt(bal)+' '+p.currency;document.getElementById('stNote').textContent=document.getElementById('reportNote').value||'-';document.getElementById('sigNameFa').textContent=p.nameFa;document.getElementById('sigNameEn').textContent=p.nameEn||''}
+function printReport(){buildReport();window.print()}
+function exportBackup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='imam-sahib-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)}
+function restoreBackup(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.people))throw 0;if(confirm('اطلاعات فعلی با Backup جایگزین شود؟')){data=d;save();renderPeople();fillPeople();alert('Backup بازیابی شد.')}}catch(e){alert('فایل Backup معتبر نیست.')}};r.readAsText(f)}
+renderPeople();fillPeople();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>

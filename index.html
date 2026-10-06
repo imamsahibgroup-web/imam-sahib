@@ -53,6 +53,12 @@ label{display:block;margin:10px 0 5px;font-weight:600}
 }
 
 .watermark,#watermark,[class*=\"watermark\"]{display:none!important;visibility:hidden!important;opacity:0!important}
+
+/* iPhone Add-to-Home-Screen print stability: keep the same statement layout as Safari */
+@media print {
+  #sigNameFa,#sigNameEn{display:block!important;visibility:visible!important;opacity:1!important;}
+  .signatures,.sig{visibility:visible!important;}
+}
 </style>
 </head>
 <body>
@@ -133,6 +139,8 @@ function printReport(){buildReport();window.print()}
 function exportBackup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='imam-sahib-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href)}
 function restoreBackup(f){if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.people))throw 0;if(confirm('اطلاعات فعلی با Backup جایگزین شود؟')){data=d;save();renderPeople();fillPeople();alert('Backup بازیابی شد.')}}catch(e){alert('فایل Backup معتبر نیست.')}};r.readAsText(f)}
 renderPeople();fillPeople();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+// Disable old PWA cache so Home Screen always uses the latest page
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});}
+if('caches' in window){caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{});}
 </script>
 </body></html>
